@@ -1,5 +1,7 @@
 # Unl
 
+[![smithery badge](https://smithery.ai/badge/unlimitless/Unl)](https://smithery.ai/servers/unlimitless/Unl)
+
 *Think inside your AI world.*
 
 **Unl is a remote MCP server that keeps the decisions you have already settled, together with the
