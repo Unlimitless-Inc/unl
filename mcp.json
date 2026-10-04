@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "unl": {
+      "url": "https://api.unlimitless.ai/mcp"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+# LiteLLM proxy with Unl two ways: the why on every call (callback), and Unl's tools through the MCP gateway.
+model_list:
+  - model_name: gpt-5
+    litellm_params:
+      model: openai/gpt-5
+      api_key: os.environ/OPENAI_API_KEY
+
+litellm_settings:
+  callbacks: unl_callbacks.proxy_handler_instance
+
+mcp_servers:
+  unl:
+    url: "https://api.unlimitless.ai/mcp"
+    transport: "http"
+    auth_type: "bearer_token"
+    auth_value: os.environ/UNL_KEY

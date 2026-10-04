@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "unl": {
+      "type": "http",
+      "url": "https://api.unlimitless.ai/mcp",
+      "headers": {
+        "Authorization": "Bearer $COPILOT_MCP_UNL_KEY"
+      },
+      "tools": ["ask_unl", "get_from_unl", "log_to_unl"]
+    }
+  }
+}

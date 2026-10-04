@@ -1,0 +1,9 @@
+{
+  "name": "unl-cloudflare-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": { "binding": "AI" },
+  "durable_objects": { "bindings": [{ "name": "UnlAgent", "class_name": "UnlAgent" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["UnlAgent"] }]
+}
