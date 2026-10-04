@@ -1,0 +1,13 @@
+{
+  "name": "unl",
+  "version": "1.0.0",
+  "description": "Your AI already knows how to reason. Unl gives it your reason.",
+  "author": {
+    "name": "Neil Mortimer",
+    "email": "hello@unlimitless.ai"
+  },
+  "homepage": "https://unlimitless.ai",
+  "keywords": ["mcp", "decisions", "reasoning", "agents"],
+  "logo": "assets/logo.svg",
+  "mcpServers": "./mcp.json"
+}

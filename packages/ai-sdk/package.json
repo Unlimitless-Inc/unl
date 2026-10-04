@@ -1,0 +1,67 @@
+{
+  "name": "@unlimitless/ai-sdk",
+  "version": "0.1.0",
+  "description": "Unl, your why agent, inside any Vercel AI SDK model: every call carries the part of what you decided, and why, that bears on it.",
+  "homepage": "https://unlimitless.ai/developers",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Unlimitless-Inc/unl.git",
+    "directory": "packages/ai-sdk"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./eve": {
+      "types": "./dist/eve.d.ts",
+      "import": "./dist/eve.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ai",
+    "ai-sdk",
+    "vercel",
+    "middleware",
+    "agents",
+    "context",
+    "decisions",
+    "unl",
+    "unlimitless",
+    "mcp",
+    "eve"
+  ],
+  "peerDependencies": {
+    "ai": ">=5.0.0",
+    "eve": ">=0.66.0"
+  },
+  "devDependencies": {
+    "@ai-sdk/provider": "^4.0.18",
+    "@types/node": "^24.13.6",
+    "ai": "^7.0.114",
+    "eve": "^0.66.3",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.mjs",
+    "prepublishOnly": "npm test"
+  },
+  "peerDependenciesMeta": {
+    "eve": {
+      "optional": true
+    }
+  }
+}

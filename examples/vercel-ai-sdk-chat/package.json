@@ -1,0 +1,29 @@
+{
+  "name": "unl-ai-sdk-chat",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "^4.0.117",
+    "@unlimitless/ai-sdk": "^0.1.0",
+    "ai": "^7.0.114",
+    "next": "^16.3.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "typescript": "^5.9.3"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Unlimitless-Inc/unl.git",
+    "directory": "examples/vercel-ai-sdk-chat"
+  }
+}
