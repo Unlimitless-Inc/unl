@@ -1,0 +1,1366 @@
+{
+  "format": "kept-decision",
+  "version": 1,
+  "decisions": [
+    {
+      "name": "full record",
+      "input": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "id": "walk1:sha256:9921a5aa526106bbb128a039c8c4b911b977545540be96f4cdf59b4eedc283cf"
+    },
+    {
+      "name": "same record, keys in reverse order (same id)",
+      "input": {
+        "provenance": {
+          "supersededBy": null,
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "wasRevisionOf": "example-decision-exports-sync",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "proposerModel": "an-assistant-model",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "ratifiedBy": "a.person@example.com",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "wasGeneratedBy": "deliberation-exports-queue"
+        },
+        "why": {
+          "pillars": [
+            {
+              "statement": "Exports over 40 MB time out at 30 seconds.",
+              "type": "fact"
+            },
+            {
+              "statement": "Raising the timeout: it moves the limit without removing it.",
+              "type": "rejected_alternative"
+            },
+            {
+              "statement": "Exports were synchronous while every file was small.",
+              "type": "prior_ruling"
+            }
+          ],
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request."
+        },
+        "ruling": {
+          "status": "canonical",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "statement": "Exports run on a background queue, not inside the request.",
+          "title": "Exports run on a queue",
+          "id": "example-decision-exports-queue"
+        }
+      },
+      "id": "walk1:sha256:9921a5aa526106bbb128a039c8c4b911b977545540be96f4cdf59b4eedc283cf"
+    },
+    {
+      "name": "minimal record: nulls and empty arrays",
+      "input": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": null,
+          "derivation_shape": null,
+          "pillars": []
+        },
+        "provenance": {
+          "wasGeneratedBy": null,
+          "wasDerivedFrom": [],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": null,
+          "proposerModel": null,
+          "proposedAt": null,
+          "wasRevisionOf": null,
+          "wasRevisionOfAll": [],
+          "supersededBy": null
+        }
+      },
+      "id": "walk1:sha256:6844c3eb35e39ba27d47e8bd33c6b98a548dbddf72c324c05d9a473330d74e98"
+    },
+    {
+      "name": "non-ASCII text, escapes and control characters",
+      "input": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Prix affichés en euros, “toujours”",
+          "statement": "Les prix s’affichent en € TTC. 価格は税込み。 Emoji stay as written: ✅",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "verbatim_quote",
+              "statement": "Line one\nline two\ttabbed \"quoted\" back\\slash"
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "id": "walk1:sha256:40d5d26d9b288bda45b6bc3b46ac808f53b952fb9eff8defee64587202d4f185"
+    },
+    {
+      "name": "a supporting point with no statement",
+      "input": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "principle",
+              "statement": null
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "id": "walk1:sha256:7484e12caafa139c7e849a5f699c295e516dd20bbea920db6ea9e52bce3143f2"
+    },
+    {
+      "name": "a supporting point type this format does not list",
+      "input": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "a_type_from_another_implementation",
+              "statement": "kept as written"
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "id": "walk1:sha256:5019b2472a9418e057f165139de0c59b063c00d291f58509b750e941cd09e349"
+    }
+  ],
+  "proposals": [
+    {
+      "name": "a proposal with its reason",
+      "content": "Exports run on a background queue.",
+      "why": "Large files exceed the request timeout.",
+      "id": "cand1:sha256:b85e6eb46aba66afcb09692b9dcb646fba7c9ba19ea1d8fad095ada9d85ce63a"
+    },
+    {
+      "name": "surrounding whitespace is trimmed (same id as above)",
+      "content": "  Exports run on a background queue.\n",
+      "why": " Large files exceed the request timeout. ",
+      "id": "cand1:sha256:b85e6eb46aba66afcb09692b9dcb646fba7c9ba19ea1d8fad095ada9d85ce63a"
+    },
+    {
+      "name": "non-ASCII text",
+      "content": "Les prix s’affichent en € TTC.",
+      "why": "价格必须含税。",
+      "id": "cand1:sha256:255e1a277b5fe26b530d0c44dc0ac7d5c914a2ba789b07f9fb31a31ac0d0204f"
+    }
+  ],
+  "lifecycle": [
+    {
+      "name": "retiring it keeps its id",
+      "same_id": true,
+      "after": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "superseded"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": "example-decision-exports-streamed"
+        }
+      },
+      "before": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "recording what it replaced keeps its id",
+      "same_id": true,
+      "after": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": null,
+          "wasRevisionOfAll": [],
+          "supersededBy": null
+        }
+      },
+      "before": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "lifecycle flags keep its id",
+      "same_id": true,
+      "after": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical",
+          "is_standing": true,
+          "is_north_star": true,
+          "venture_id": null
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "before": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "editing the statement moves its id",
+      "same_id": false,
+      "after": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request. Always.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "before": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "changing when it was ratified moves its id",
+      "same_id": false,
+      "after": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-28T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "before": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "changing who ratified it moves its id",
+      "same_id": false,
+      "after": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "another.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "before": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "reordering the supporting points moves its id",
+      "same_id": false,
+      "after": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "before": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "reordering what it applies to moves its id",
+      "same_id": false,
+      "after": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "exports",
+            "architecture"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      },
+      "before": {
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "name": "an id that does not recompute",
+      "error": "does not recompute",
+      "record": {
+        "id": "walk1:sha256:7b5411281b1d553578806fb602af0c1fcd11a4734250019c56dcb5adaa20728d",
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "a canonical decision with nobody who made it canon",
+      "error": "must name the person",
+      "record": {
+        "id": "walk1:sha256:df1ed6cb5770aca21ecfb62f0759a0ae243ad7593b89af20fecae711fd44e8b0",
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": null,
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "a model that both proposed it and made it canon",
+      "error": "cannot be the one",
+      "record": {
+        "id": "walk1:sha256:26d8258f85832d27f4fe553196debba839a422c17fb2fd57fe61f87eea6c3f3f",
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "an-assistant-model",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "a ratification time that is not ISO 8601 UTC",
+      "error": "ratifiedAt",
+      "record": {
+        "id": "walk1:sha256:7660a6a17b471a55d1a448829a605c61273e657b2d8497e6b15e435ff8eb6e05",
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27 10:38:32.815+00",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "a field the format does not have",
+      "error": "not part of the format",
+      "record": {
+        "id": "walk1:sha256:9921a5aa526106bbb128a039c8c4b911b977545540be96f4cdf59b4eedc283cf",
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        },
+        "note": "extra"
+      }
+    },
+    {
+      "name": "a record with no reason object",
+      "error": "why: required",
+      "record": {
+        "id": "walk1:sha256:9921a5aa526106bbb128a039c8c4b911b977545540be96f4cdf59b4eedc283cf",
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "canonical"
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    },
+    {
+      "name": "a status the format does not have",
+      "error": "must be one of",
+      "record": {
+        "id": "walk1:sha256:9921a5aa526106bbb128a039c8c4b911b977545540be96f4cdf59b4eedc283cf",
+        "ruling": {
+          "id": "example-decision-exports-queue",
+          "title": "Exports run on a queue",
+          "statement": "Exports run on a background queue, not inside the request.",
+          "authority_scope": [
+            "architecture",
+            "exports"
+          ],
+          "status": "draft"
+        },
+        "why": {
+          "overall_why": "Larger files exceed the request timeout, so the export has to outlive the request.",
+          "derivation_shape": "a measured failure replaced an earlier choice",
+          "pillars": [
+            {
+              "type": "fact",
+              "statement": "Exports over 40 MB time out at 30 seconds."
+            },
+            {
+              "type": "rejected_alternative",
+              "statement": "Raising the timeout: it moves the limit without removing it."
+            },
+            {
+              "type": "prior_ruling",
+              "statement": "Exports were synchronous while every file was small."
+            }
+          ]
+        },
+        "provenance": {
+          "wasGeneratedBy": "deliberation-exports-queue",
+          "wasDerivedFrom": [
+            "incident-export-timeout"
+          ],
+          "ratifiedBy": "a.person@example.com",
+          "ratifiedAt": "2026-07-27T10:38:32.815Z",
+          "proposerModel": "an-assistant-model",
+          "proposedAt": "2026-07-27T10:30:00.000Z",
+          "wasRevisionOf": "example-decision-exports-sync",
+          "wasRevisionOfAll": [
+            "example-decision-exports-sync"
+          ],
+          "supersededBy": null
+        }
+      }
+    }
+  ]
+}
