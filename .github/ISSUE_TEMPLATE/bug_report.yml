@@ -1,0 +1,49 @@
+name: Bug report
+description: Something in this repository does not work as it says it does.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Never paste a key, a token or the text of your own decisions here. To report a security problem, use the Security tab instead.
+  - type: dropdown
+    id: part
+    attributes:
+      label: Which part
+      options:
+        - the unl command
+        - the AI SDK package
+        - the Cursor plugin
+        - an example
+        - the decision format
+        - the docs
+    validations:
+      required: true
+  - type: textarea
+    id: ran
+    attributes:
+      label: What you ran
+      description: The command or code, and where you ran it.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      description: The output or error, with any key or token removed.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: The package version, Node or Python version, and operating system.
+      placeholder: unlimitless 0.3.5, Node 22, macOS 15
+    validations:
+      required: true

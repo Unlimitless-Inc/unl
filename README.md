@@ -6,9 +6,21 @@ Unl, your why agent. Your AI already knows how to reason. Unl gives it your reas
 
 You decide things while you work with AI: what to build, what to leave out, and why. Unl keeps those decisions with their reasons. When you or one of your agents is about to act, Unl hands over the ones that bear on the task, so Claude Code, Cursor, ChatGPT, Codex and the agents you build all start from the same why. You never re-brief them.
 
-This repository holds everything that runs on your side: the `unl` command, the AI SDK package, the Cursor plugin and a working example for each agent framework. Unl itself runs as a hosted service at `api.unlimitless.ai`.
+## What is open, and what is hosted
 
-## Start in thirty seconds
+**Open, in this repository, under MIT:** everything that runs on your side. The `unl` command, the AI SDK package, the Cursor plugin, a working example for each agent framework, and the decision format with a conformance check you can run on your own code. Read them to see exactly what leaves your machine.
+
+**Also open:** the [status checks](https://github.com/Unlimitless-Inc/status), which test Unl from outside its own infrastructure.
+
+**Hosted:** Unl itself, the service that keeps your decisions with their reasons and chooses which ones bear on a task, runs at `api.unlimitless.ai`. Its code is not in this repository.
+
+## Start
+
+**With the agent you already use**, tell it:
+
+```text
+Read unlimitless.ai/start.md, set up Unl, and show me the decisions you find.
+```
 
 **In Claude Code or Cursor:**
 
@@ -59,12 +71,33 @@ then run `/mcp`, choose unl and pick Authenticate.
 | [`.cursor-plugin/`](.cursor-plugin) and [`mcp.json`](mcp.json) | The Cursor plugin: Unl's MCP server, with sign-in discovered from the server. No key in the repository. |
 | [`decision-format/`](decision-format) | The open format for a kept decision: what it holds, how its address is computed and checked, a conformance check you can run on your own implementation, and reference code in Node and Python. MIT, and it runs without Unl. |
 
+## Try the client contract locally
+
+```bash
+git clone https://github.com/Unlimitless-Inc/unl.git
+cd unl/packages/ai-sdk
+npm install
+npm test
+```
+
+These tests use synthetic responses. They test the client contract without an account or a model call, and do not prove hosted retrieval or model performance. The [planner and writer example](examples/openai-agents) is the next step for trying a real changed decision in your own test project.
+
+For example, you first choose synchronous exports because the files are small. Later you choose a queue because larger files exceed the request timeout. The job is for a fresh writer to receive the new choice and its reason, then produce a change that follows it. Compare with an equally updated file as well as stale or absent context. A maintained file may work just as well.
+
 ## How an agent gets your why
 
 Two ways in, and most examples show both:
 
 - **On every call.** A middleware, hook or instructions function asks Unl what bears on the turn and puts the answer in front of the model before it acts.
 - **Through Unl's tools over MCP.** The agent can open the full reasoning behind a decision, and propose a new one for you to confirm. Nothing becomes one of your decisions until you say so.
+
+## Follow the build
+
+Unl ships changes every day, and [the changelog](https://unlimitless.ai/changelog) says in plain words what each one did. To follow along, star this repository.
+
+## Contributing and security
+
+Bug reports and small fixes are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). To report a security problem, follow [SECURITY.md](SECURITY.md) and do not open a public issue.
 
 ## Links
 
