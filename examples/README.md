@@ -30,4 +30,4 @@ Checked the same day:
 
 No example was run against a paid model call.
 
-For the Vercel stack (the AI SDK package, eve and a Deploy-with-Vercel template), see [`../vercel`](../vercel) and [`packages/ai-sdk`](../../packages/ai-sdk).
+For the Vercel stack (the AI SDK package, eve and a Deploy-with-Vercel template), see [the Vercel chat example](https://github.com/Unlimitless-Inc/unl/tree/main/examples/vercel-ai-sdk-chat) and [the AI SDK package](https://github.com/Unlimitless-Inc/unl/tree/main/packages/ai-sdk).
