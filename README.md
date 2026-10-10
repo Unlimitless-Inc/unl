@@ -57,6 +57,7 @@ then run `/mcp`, choose unl and pick Authenticate.
 | [`examples/`](examples) | One small working example per framework: Mastra, OpenAI Agents SDK, Google ADK, LangChain, Pydantic AI, LiteLLM, Cloudflare Agents, Netlify, TanStack AI, Composio, E2B, Browser Use and a GitHub Copilot custom agent. |
 | [`examples/vercel-ai-sdk-chat/`](examples/vercel-ai-sdk-chat) | A chat app on the AI SDK you can deploy to Vercel with Unl already added. |
 | [`.cursor-plugin/`](.cursor-plugin) and [`mcp.json`](mcp.json) | The Cursor plugin: Unl's MCP server, with sign-in discovered from the server. No key in the repository. |
+| [`decision-format/`](decision-format) | The open format for a kept decision: what it holds, how its address is computed and checked, a conformance check you can run on your own implementation, and reference code in Node and Python. MIT, and it runs without Unl. |
 
 ## How an agent gets your why
 
