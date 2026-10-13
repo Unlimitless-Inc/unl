@@ -6,6 +6,8 @@ Unl, your why agent. Your AI already knows how to reason. Unl gives it your reas
 
 See it work in two minutes, no account: `node demo/changed-decision.mjs`
 
+![The two-minute demo running in a terminal](assets/demo.gif)
+
 You decide things while you work with AI: what to build, what to leave out, and why. Unl keeps those decisions with their reasons. When you or one of your agents is about to act, Unl hands over the ones that bear on the task, so Claude Code, Cursor, ChatGPT, Codex and the agents you build all start from the same why. You never re-brief them.
 
 ## What is open, and what is hosted
