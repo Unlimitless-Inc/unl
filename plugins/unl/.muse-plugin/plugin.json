@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "name": "unl",
+  "displayName": "Unl",
+  "version": "0.1.0",
+  "description": "Your decisions and their reasons, handed to Muse Code before it works on each turn.",
+  "compat": {
+    "source": "native",
+    "manifestDir": ".muse-plugin"
+  },
+  "capabilities": {
+    "skills": [],
+    "commands": [],
+    "hooks": [
+      {
+        "id": "serve",
+        "event": "UserPromptSubmit",
+        "command": [
+          "node",
+          "hooks/hook.cjs",
+          "muse"
+        ],
+        "timeoutMs": 15000,
+        "statusMessage": "Reading your decisions"
+      }
+    ],
+    "mcpServers": [
+      {
+        "id": "unl",
+        "transport": "stdio",
+        "command": [
+          "node",
+          "mcp/bridge.cjs",
+          "muse-code"
+        ]
+      }
+    ],
+    "reminders": []
+  }
+}
