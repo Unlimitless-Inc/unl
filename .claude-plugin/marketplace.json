@@ -1,0 +1,12 @@
+{
+  "name": "unl",
+  "owner": { "name": "Unlimitless" },
+  "plugins": [
+    {
+      "name": "unl",
+      "source": "./plugins/unl",
+      "description": "Your decisions and their reasons, handed to Muse Code before it works on each turn.",
+      "version": "0.1.0"
+    }
+  ]
+}
