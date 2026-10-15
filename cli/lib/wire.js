@@ -133,6 +133,146 @@ function wireCursor(repo, { url, hookPath, skipMcp = false, skipHook = false }) 
 }
 
 /*
+ * CODEX, read at source in Codex's docs on 5 Oct (learn.chatgpt.com/codex/extend/mcp and
+ * /docs/hooks). Everything goes in the USER config, ~/.codex/config.toml (or $CODEX_HOME/config.toml):
+ *   - the server, signed in with Codex's own OAuth (`codex mcp login unl`), so no key is written into a file;
+ *   - default_tools_approval_mode = "writes": Codex asks only for a tool not marked read-only, and Unl's three
+ *     read tools are set to "approve" outright, so an agent does not stop on each read. Writes still carry
+ *     their single-use nonce, and the shell sandbox is untouched;
+ *   - the serve hook as inline [hooks] tables. The user layer needs no project trust, and the docs say layers
+ *     merge rather than replace, so a tool that rewrites ~/.codex/hooks.json (Orca does) cannot drop it.
+ * Codex still asks the person to approve a new hook once, in its /hooks review: that is Codex's trust step,
+ * and init says so rather than going around it.
+ */
+const UNL_READ_TOOLS = ["connect_to_unl", "ask_unl", "get_from_unl"];
+
+function codexHome(home, env = process.env) {
+  return env.CODEX_HOME && env.CODEX_HOME.trim() ? env.CODEX_HOME.trim() : path.join(home, ".codex");
+}
+
+function readText(file) {
+  try { return fs.readFileSync(file, "utf8"); } catch { return null; }
+}
+
+/** The [mcp_servers.<name>] tables in a config.toml's text that are Unl's, by name or by URL. Pure. */
+function unlServersInToml(text, scope, where) {
+  const out = [];
+  const lines = String(text || "").split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const m = /^\s*\[mcp_servers\.("?)([^\]".]+)\1\]\s*(#.*)?$/.exec(lines[i]);
+    if (!m) continue;
+    let body = "";
+    for (let j = i + 1; j < lines.length && !/^\s*\[/.test(lines[j]); j++) body += lines[j] + "\n";
+    if (isUnlServer(m[2], { body })) out.push({ name: m[2], scope, where });
+  }
+  return out;
+}
+
+/** Serve-hook commands anywhere in a TOML file's text (inline [hooks] tables, or a managed requirements file). Pure. */
+function serveHooksInToml(text, file) {
+  return String(text || "").split("\n").filter((l) => /^\s*command\s*=/.test(l) && SERVE_HOOK_RX.test(l)).map((l) => ({ file, event: "UserPromptSubmit", command: l.replace(/^\s*command\s*=\s*/, "").trim() }));
+}
+
+/**
+ * What already wires Unl for Codex: servers in the user and project config.toml; serve hooks in either
+ * config.toml, either hooks.json, and a managed requirements.toml (the house Mini's /etc/codex).
+ */
+function detectCodex(repo, { home, env = process.env, managed = "/etc/codex/requirements.toml" } = {}) {
+  const ch = codexHome(home, env);
+  const user = path.join(ch, "config.toml");
+  const project = path.join(repo, ".codex", "config.toml");
+  const hooks = [
+    ...serveHooksIn(path.join(ch, "hooks.json"), ["UserPromptSubmit", "SessionStart"]),
+    ...serveHooksIn(path.join(repo, ".codex", "hooks.json"), ["UserPromptSubmit", "SessionStart"]),
+    ...serveHooksInToml(readText(user), user),
+    ...serveHooksInToml(readText(project), project),
+    ...(managed ? serveHooksInToml(readText(managed), managed) : []),
+  ];
+  const servers = [
+    ...unlServersInToml(readText(user), "user", "~/.codex/config.toml"),
+    ...unlServersInToml(readText(project), "project", ".codex/config.toml"),
+  ];
+  return { hooks, servers, unlMd: fs.existsSync(path.join(repo, "unl.md")), rules: rulesPointingAtUnlMd(repo) };
+}
+
+/** The TOML init appends for the server. JSON string syntax is valid TOML basic-string syntax. Pure. */
+function codexServerToml(url) {
+  const t = [
+    "",
+    "# Unl, added by `unlimitless init --codex`. Its read tools run without asking; anything else asks first.",
+    `[mcp_servers.${MCP_NAME}]`,
+    `url = ${JSON.stringify(url)}`,
+    'default_tools_approval_mode = "writes"',
+    // Codex hides MCP tools behind its tool search by default, so a fresh session never learns Unl is
+    // there and makes no call unless the person names it.
+    // Leaving the deferred surface out shows Unl's tools to the model up front, as Claude Code does.
+    'omit_tools_from = ["deferred"]',
+  ];
+  for (const tool of UNL_READ_TOOLS) t.push("", `[mcp_servers.${MCP_NAME}.tools.${tool}]`, 'approval_mode = "approve"');
+  return t.join("\n") + "\n";
+}
+
+/** The TOML init appends for the serve hook and its part 2 (one group, as in Claude Code). Pure. */
+function codexHookToml(hookPath) {
+  const cmd = commandPath(hookPath);
+  return [
+    "",
+    "# Unl's per-turn serve, added by `unlimitless init --codex`. Codex asks you to approve it once, in /hooks.",
+    "[[hooks.UserPromptSubmit]]",
+    "",
+    "[[hooks.UserPromptSubmit.hooks]]",
+    'type = "command"',
+    `command = ${JSON.stringify(`node "${cmd}"`)}`,
+    "timeout = 15",
+    "",
+    "[[hooks.UserPromptSubmit.hooks]]",
+    'type = "command"',
+    `command = ${JSON.stringify(`node "${cmd}" more`)}`,
+    "timeout = 30",
+  ].join("\n") + "\n";
+}
+
+/**
+ * Codex: append the server and the hook to the user config.toml, each only when asked for. A config that
+ * already declares UserPromptSubmit some other way (an inline array, or a plain [hooks.UserPromptSubmit]
+ * table) cannot take the appended array-of-tables, so the hook goes into ~/.codex/hooks.json instead, in
+ * the shape Codex shares with Claude Code. Returns what it did, never a value.
+ */
+function wireCodex(home, { url, hookPath, skipMcp = false, skipHook = false, env = process.env } = {}) {
+  const ch = codexHome(home, env);
+  const file = path.join(ch, "config.toml");
+  const before = readText(file) || "";
+  let text = before;
+  const mcpAdded = !skipMcp;
+  if (mcpAdded) text += codexServerToml(url);
+  let hookAdded = false;
+  let hookFile = null;
+  if (!skipHook) {
+    const declared = /^\s*UserPromptSubmit\s*=|^\s*\[hooks\.UserPromptSubmit\]/m.test(before);
+    if (!declared) {
+      text += codexHookToml(hookPath);
+      hookAdded = true;
+      hookFile = file;
+    } else {
+      const hf = path.join(ch, "hooks.json");
+      const settings = readJson(hf);
+      const cmd = commandPath(hookPath);
+      if (addHook(settings, "UserPromptSubmit", `node "${cmd}"`, (c) => isUnlHook(c, cmd) && !PART_TWO_RX.test(c))) {
+        addPartTwo(settings, cmd);
+        writeJson(hf, settings);
+        hookAdded = true;
+        hookFile = hf;
+      }
+    }
+  }
+  if (text !== before) {
+    fs.mkdirSync(ch, { recursive: true });
+    fs.writeFileSync(file, text.startsWith("\n") && !before ? text.slice(1) : text);
+  }
+  return { file, before, mcpAdded, hookAdded, hookFile };
+}
+
+/*
  * NEVER DOUBLE-WIRE. Init used to recognise only its OWN hook (~/.unl/hook.cjs) and a
  * server named exactly "unl", so a folder already reaching Unl another way got a second of each. Neil ran
  * init in a repo whose seats already had a serve hook (.claude/hooks/unl-inject.sh) and the Unl server,
@@ -142,7 +282,7 @@ function wireCursor(repo, { url, hookPath, skipMcp = false, skipHook = false }) 
  */
 
 /** A hook command that serves Unl: init's own runtime, the repo-style serve hook, or anything calling Unl's API. */
-const SERVE_HOOK_RX = /\.unl[\\/]+hook\.cjs|unl[-_]inject|api\.unlimitless\.ai/i;
+const SERVE_HOOK_RX = /\.unl[\\/]+hook\.cjs|unl[-_]inject|unl-codex-serve|api\.unlimitless\.ai/i;
 /** A server is Unl's when it points at Unl's API, or carries Unl's name (a stdio dev server, a connector). */
 const UNL_URL_RX = /api\.unlimitless\.ai/i;
 const UNL_NAME_RX = /^(claude\.ai[\s_-]+)?(unl|unlimitless)$/i;
@@ -237,15 +377,42 @@ function planWiring(found, { repair = false } = {}) {
   };
 }
 
-/** What was found, in plain lines for the terminal. Names and places only, never a value. Pure. */
+/**
+ * What was found, in plain lines for the terminal. Names and places only, never a value. An identical line
+ * is said once: a managed requirements file can list the same hook many times, and printing it ten times
+ * reads as a fault. Pure.
+ */
 function describeFound(found, repo) {
   const rel = (f) => (f.startsWith(repo) ? path.relative(repo, f) : f.replace(require("os").homedir(), "~"));
-  return [
+  return [...new Set([
     ...found.hooks.map((h) => `hook in ${rel(h.file)} (${h.event})`),
     ...found.servers.map((s) => (s.where === "claude mcp list" ? `server "${s.name}" (${s.scope === "claude.ai connector" ? "a claude.ai connector" : "reported by claude mcp list"})` : `server "${s.name}" in ${s.scope} scope (${s.where})`)),
     ...(found.unlMd ? ["unl.md in this folder"] : []),
     ...found.rules.map((r) => `${r} points at unl.md`),
-  ];
+  ])];
+}
+
+/**
+ * Not a project folder: the home folder or the filesystem root. Run there, the read step finds nothing and
+ * unl.md would land in the home folder, so init says so instead. Pure but for path.
+ */
+function notAProject(dir, home) {
+  // Real paths, because macOS hands out /var/… for /private/var/…: a resolved-only compare missed a home
+  // folder reached through a symlink, measured on this change's own check.
+  const real = (p) => { try { return fs.realpathSync(path.resolve(p)); } catch { return path.resolve(p); } };
+  const d = real(dir);
+  return d === real(home) || d === path.parse(d).root;
+}
+
+/**
+ * The last line init prints for a surface, or null. Codex runs a new hook only after the person approves it
+ * in /hooks, so that instruction is given only when this run added one: a hook already active (a managed
+ * one, or an earlier run's) needs no approval, and telling him to approve it anyway was wrong. Pure.
+ */
+function closingLine(surface, { hookAdded }) {
+  if (surface === "codex") return hookAdded ? "The first time, open Codex and type /hooks: Codex runs a new hook only after you approve it there, once." : null;
+  if (surface === "claude-code") return "The first time, Claude Code asks whether you trust this folder. Say yes: the hook and the unl server only run in folders you trust.";
+  return null;
 }
 
 /** unl.md at the repo root: reach and mechanics only; the decisions stay in Unl. */
@@ -256,4 +423,4 @@ function writeUnlMd(repo, templatePath) {
   return true;
 }
 
-module.exports = { wireClaudeHook, wireClaudeMcp, wireCursor, writeUnlMd, addHook, isUnlHook, commandPath, MCP_NAME, detectClaude, detectCursor, planWiring, describeFound, unlServersFromList, SERVE_HOOK_RX };
+module.exports = { wireClaudeHook, wireClaudeMcp, wireCursor, wireCodex, detectCodex, codexHome, codexServerToml, codexHookToml, UNL_READ_TOOLS, writeUnlMd, addHook, isUnlHook, commandPath, MCP_NAME, detectClaude, detectCursor, planWiring, describeFound, notAProject, closingLine, unlServersFromList, SERVE_HOOK_RX };

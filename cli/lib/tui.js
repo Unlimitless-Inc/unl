@@ -17,6 +17,7 @@
  */
 
 // EMPTY_TEXT: what an empty terminal says, one string for both views so they never drift.
+const { beatsFor } = require("./terminal-beats");
 const { keyOf, asciiOf, wantsAscii, POLL_MS, EMPTY_TEXT, voiceOf } = require("./terminal");
 
 /** At this many columns and wider the shelf is its own right-hand pane; narrower, it folds inline. */
@@ -160,9 +161,9 @@ function hang(lead, text, w, fn = (x) => x, hangN = [...lead.replace(ANSI, "")].
   return wrap(text, avail).map((l, i) => (i === 0 ? lead : " ".repeat(hangN)) + fn(l));
 }
 
-function hhmm(iso) {
+function hhmm(iso, utc = false) {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? String(iso) : d.toTimeString().slice(0, 5);
+  return Number.isNaN(d.getTime()) ? String(iso) : utc ? d.toISOString().slice(11, 16) : d.toTimeString().slice(0, 5);
 }
 
 /** The layout for a width. Pure. */
@@ -229,8 +230,18 @@ function leadText(s) {
   return `Gave ${who(s)} ${k.length === 1 ? "one of your decisions" : `${k.length} of your decisions`}${under ? ` under ${under}` : ""}`;
 }
 
-/** The speaker column's width in the exchange: room for "Claude Code then". */
+/** The speaker column's width in the exchange: room for "Unl told your AI". */
 const VOICE_W = 16;
+
+/**
+ * THE THREE BEATS: every turn, everywhere, reads
+ * You asked / Unl told your AI / Your AI did, so a person learns it once. The same words as the portal's
+ * TerminalView (BEATS there); the read-only public stream is someone else's turns, so it says "the AI".
+ * The third beat is in one of three truthful states, from what the AI reported and nothing else: an act that
+ * names a decision Unl handed over ("Your AI did", with its because), an act after the turn with no cause
+ * claimed ("Then your AI"), or nothing reported (left open, nothing invented). Pure.
+ */
+const outcomeOfActs = (acts) => (acts.some((a) => a.because) ? "reported" : acts.length ? "then" : "open");
 
 /**
  * Unl's answer, in its own voice: the server writes it; against an older server the line
@@ -246,8 +257,11 @@ function answerText(s) {
 function turnLines(g, w, p, opts = {}) {
   const s = g.last;
   const v = viewOf(s);
+  const pub = opts.viewer === "public";
+  const beats = beatsFor(s, pub ? "public" : "owner");
+  const voiceWidth = Math.max(VOICE_W, ...Object.values(beats).map((label) => label.length));
   const lines = [];
-  const time = g.n > 1 ? `${hhmm(g.first.at)} to ${hhmm(s.at)}` : hhmm(s.at);
+  const time = g.n > 1 ? `${hhmm(g.first.at, opts.viewer === "public")} to ${hhmm(s.at, opts.viewer === "public")}` : hhmm(s.at, opts.viewer === "public");
   const right = (left, t) => { const gap = w - vlen(left) - t.length; return gap >= 1 ? left + " ".repeat(gap) + p.dim(t) : fit(left, Math.max(1, w - t.length - 1)) + " " + p.dim(t); };
   if (g.bg) {
     // Machine turns fold: one quiet line, never the raw notification.
@@ -255,16 +269,16 @@ function turnLines(g, w, p, opts = {}) {
     return lines;
   }
   const handed = kept(s).length > 0;
-  const meta = [s.model, s.agent ? (v.source || s.agent) : null].filter(Boolean).join(" · ");
+  const meta = opts.picked ? [s.model, s.agent ? (v.source || s.agent) : null].filter(Boolean).join(" · ") : "";
   lines.push(right(`${opts.picked ? p.acc("›") : handed ? p.acc("⏺") : p.dim("⏺")} ${p.bold(who(s))}${meta ? p.dim(` · ${meta}`) : ""}`, time));
   // Which project Agent Unl read the turn as, so a miss is visible. Absent with one project.
-  if (s.read) lines.push(...hang(`  ${p.dim("⎿")} ${p.dim("read as")} `, String(s.read), w));
+  if (opts.picked && s.read) lines.push(...hang(`  ${p.dim("⎿")} ${p.dim("read as")} `, String(s.read), w));
   // THE TURN AS A CONVERSATION BETWEEN TWO AIS: the AI asks, Unl answers with what bore and
   // why, the AI acts, the moments stand out; the decision list follows, compact. Each voice has its speaker
   // in a column; on a narrow screen the speaker sits on its own line.
   // `mark` is a styled prefix (a heads-up's tag) that sits in the lead, so wrapping never cuts it.
   const voice = (label, text, fl, ft, max, mark = "") => {
-    const out = w >= 60 ? hang(`  ${fl(label.padEnd(VOICE_W).slice(0, VOICE_W))} ${mark}`, String(text), w, ft) : [...(label ? [`  ${fl(label)}`] : []), ...hang(`    ${mark}`, String(text), w, ft)];
+    const out = w >= Math.max(60, voiceWidth + 36) ? hang(`  ${fl(label.padEnd(voiceWidth))} ${mark}`, String(text), w, ft) : [...(label ? [`  ${fl(label)}`] : []), ...hang(`    ${mark}`, String(text), w, ft)];
     return max && out.length > max ? [...out.slice(0, max - 1), `${fit(out[max - 1], w - 2).trimEnd()}${p.dim(" …")}`] : out;
   };
   // What the surface sent Unl, readable (no XML), secrets masked before storage. The public
@@ -272,16 +286,20 @@ function turnLines(g, w, p, opts = {}) {
   const asked = v.said || v.about;
   // ROUND THREE: a surface's own description of the turn is a quiet line about it,
   // never the AI speaking; and (d) when nothing bore, Unl's line stays, but quiet.
-  if (v.context) lines.push(...hang(`  ${p.dim("⎿")} ${p.dim("about")} `, String(v.context), w, p.dim).slice(0, opts.picked ? undefined : TURN_LINES));
-  if (asked) lines.push(...voice(who(s), asked, p.dim, (x) => x, opts.picked ? 0 : TURN_LINES));
-  lines.push(...voice("Unl", answerText(s), p.acc, v.quiet ? p.dim : p.bold));
+  if (v.context && (opts.picked || pub)) lines.push(...hang(`  ${p.dim("⎿")} ${p.dim("about")} `, String(v.context), w, p.dim).slice(0, opts.picked ? undefined : TURN_LINES));
+  if (asked) lines.push(...voice(beats.asked, asked, p.dim, (x) => x, opts.picked ? 0 : TURN_LINES));
+  lines.push(...voice(beats.told, answerText(s), p.acc, v.quiet ? p.dim : p.bold));
   const heads = Array.isArray(v.heads) ? v.heads : Array.isArray(s.heads_up) ? s.heads_up : [];
   // A moment (a heads-up, a stop for the person, a sealed decision) is set in the accent's type, in the
   // column: never a side line.
   for (const t of heads) lines.push(...voice("", String(t).replace(/^★\s*/, ""), p.dim, p.acc, 0, `${p.acc("heads-up")} `));
   const acts = Array.isArray(v.acts) ? v.acts : [];
   // Round two: an act that names a decision Unl handed over says which, as a moment.
-  acts.forEach((a, i) => lines.push(...voice(i === 0 ? `${who(s)} then` : "", a.because ? `${a.line} · acting on \u201c${a.because}\u201d` : a.line, p.dim, a.moment ? (x) => p.acc(p.bold(x)) : (x) => x)));
+  const outcome = outcomeOfActs(acts);
+  acts.forEach((a, i) => lines.push(...voice(i === 0 ? (outcome === "reported" ? beats.did : beats.then) : "", a.because ? `${a.line} · acting on \u201c${a.because}\u201d` : a.line, p.dim, a.moment ? (x) => p.acc(p.bold(x)) : (x) => x)));
+  // An open turn says nothing was reported rather than inventing an outcome; a quiet turn has no third beat.
+  // Not on a public stream: its acts are withheld by design, so "not reported" would be untrue.
+  if (outcome === "open" && !v.quiet && kept(s).length && !pub) lines.push(...voice(beats.did, "No report yet", p.dim, p.dim));
   const inline = !!opts.inlineShelf;
   // BENEATH THE EXCHANGE, compact: the decisions that bore, the strongest in the
   // full flip; the standing rules folded to one line that opens on the picked turn; the
@@ -289,11 +307,11 @@ function turnLines(g, w, p, opts = {}) {
   // ROUND TWO: when Unl answered in its own words, the list is one line until the turn is picked;
   // each decision it cites carries its [n] when the list opens. A decision the previous turn in this
   // conversation already handed over folds to one line, not repeated.
-  const spoke = v.answer_by === "unl" && !!v.answer;
-  if (spoke && !opts.picked) {
-    const src = Array.isArray(v.sources) ? v.sources : [];
-    if (src.length) lines.push(...hang(`  ${p.dim("⎿")} `, src.map((x) => `[${x.n}] ${x.title || "a decision"}`).join(" · "), w, p.dim));
-    if (v.list_line) lines.push(p.dim(`  ⎿ ▸ ${v.list_line} · ${inline ? "pick the turn with [ ] to see" : "pick the turn to see"}`));
+  if (!opts.picked) {
+    if (kept(s).length || heldOf(s).length) lines.push(p.dim(`  ▸ Decisions and reasons${pub ? "" : ` · ${inline ? "[ ] to open" : "pick the turn to open"}`}`));
+    const changes = Array.isArray(v.changes) ? v.changes : Array.isArray(s.changes) ? s.changes : [];
+    for (const c of changes) lines.push(...hang("  ", String(c), w, p.dim));
+    if (g.n > 1) lines.push(p.dim(`  ⎿ the same turn ${g.n} times since ${hhmm(g.first.at, opts.viewer === "public")}`));
     lines.push("");
     return lines;
   }
@@ -308,22 +326,25 @@ function turnLines(g, w, p, opts = {}) {
     // Narrow (no shelf): the rest keep their whys inline; the strongest's is Unl's answer, and repeats when picked.
     if (inline && d.why && (i > 0 || opts.picked)) lines.push(...hang("       ", d.why, w, p.dim));
   });
-  if (again) lines.push(p.dim(`  ⎿ + ${again} again from the last turn · ${inline ? "pick the turn with [ ] to see" : "pick the turn to see"}`));
-  if (standing.length) {
+  // THE PUBLIC STREAM CARRIES NO COUNTS OR STATUS LABELS (Neil's word on; the 6 Oct
+  // blind read named "handed over · standing", "held back" and "weighed · kept · held" as machinery every time).
+  // The decisions that bore stay; the bookkeeping about them is the owner's view.
+  if (again && !pub) lines.push(p.dim(`  ⎿ + ${again} again from the last turn · ${inline ? "pick the turn with [ ] to see" : "pick the turn to see"}`));
+  if (standing.length && !pub) {
     if (opts.picked) for (const d of standing) lines.push(...hang(`  ${p.dim("⎿ every turn")} `, d.title || "A decision", w, p.dim));
     else lines.push(p.dim(`  ⎿ + ${standing.length} of your decisions that ${standing.length === 1 ? "applies" : "apply"} to every turn · ${inline ? "pick the turn with [ ] to see" : "pick the turn to see"}`));
   }
   const counts = summaryText(s);
-  if (counts && opts.picked) lines.push(p.dim(`  ⎿ ${counts}`));
+  if (counts && opts.picked && !pub) lines.push(p.dim(`  ⎿ ${counts}`));
   const held = heldOf(s);
-  if (held.length) {
+  if (held.length && !pub) {
     if (inline && opts.picked) for (const h of held) { if (h.title) lines.push(...hang(`     ${p.dim("○")} `, `${h.title} · held: ${h.reason || "judged not to bear on this turn"}`, w, p.dim)); }
     else lines.push(p.dim(`  ⎿ Held back ${held.length}: not about this · ${inline ? "pick the turn with [ ] to see why" : "h on the shelf to see why"}`));
   }
   const changes = Array.isArray(v.changes) ? v.changes : Array.isArray(s.changes) ? s.changes : [];
-  for (const c of changes.slice(0, opts.picked ? changes.length : 3)) lines.push(...hang(`  ${p.dim("⎿ changed")} `, c, w, p.dim));
+  for (const c of changes.slice(0, opts.picked ? changes.length : 3)) lines.push(...hang(`  ${p.dim(pub ? "⎿" : "⎿ changed")} `, c, w, p.dim));
   if (!opts.picked && changes.length > 3) lines.push(p.dim(`  ⎿ +${changes.length - 3} more changes`));
-  if (g.n > 1) lines.push(p.dim(`  ⎿ the same turn ${g.n} times since ${hhmm(g.first.at)}`));
+  if (g.n > 1) lines.push(p.dim(`  ⎿ the same turn ${g.n} times since ${hhmm(g.first.at, opts.viewer === "public")}`));
   lines.push("");
   return lines;
 }
@@ -332,24 +353,25 @@ function turnLines(g, w, p, opts = {}) {
 function shelfLines(s, w, p, opts = {}) {
   const out = [];
   if (!s) return [p.dim("In play"), p.rule("─".repeat(w)), ...hang("", "The next turn's decisions appear here.", w, p.dim)];
-  out.push(fit(`${p.bold("In play")}${p.dim(` · ${hhmm(s.at)} · ${who(s)}`)}`, w));
+  out.push(fit(`${p.bold("In play")}${p.dim(` · ${hhmm(s.at, opts.viewer === "public")} · ${who(s)}`)}`, w));
   out.push(p.rule("─".repeat(w)));
   // The heading says what the turn was about, never the lead line again.
   const subject = viewOf(s).subject || (s.greater && s.greater.title ? `Under ${s.greater.title}` : null);
   if (subject) out.push(...hang("", subject, w, p.bold));
+  const pub = opts.viewer === "public";
   const counts = summaryText(s);
-  if (counts) out.push(p.dim(counts));
+  if (counts && !pub) out.push(p.dim(counts));
   out.push("");
   // Bearing decisions first, standing rules after: the shelf reads this turn first.
   [...kept(s).filter((d) => !d.standing), ...kept(s).filter((d) => d.standing)].forEach((d, k) => {
-    const n = Number(d.served) > 0 ? ` ${d.served}${d.standing ? " every turn" : ""}` : d.standing ? " every turn" : "";
+    const n = pub ? "" : Number(d.served) > 0 ? ` ${d.served}${d.standing ? " every turn" : ""}` : d.standing ? " every turn" : "";
     // The strongest match carries the full flip; the rest are the accent as type.
     const tone = k === 0 ? (x) => p.flip(x) : (x) => p.acc(x);
     for (const [i, l] of wrap(d.title || "A decision", w - 4 - n.length).entries()) out.push(tone(fit(`${i === 0 ? " ✻ " : "   "}${l}`, w - n.length - 1) + (i === 0 ? n : " ".repeat(n.length)) + " "));
     if (d.why) out.push(...hang(" ", d.why, w, p.dim));
     out.push("");
   });
-  const held = heldOf(s);
+  const held = pub ? [] : heldOf(s);
   if (held.length && !opts.showHeld) out.push(p.dim(`${held.length} held back · h to see why`));
   if (held.length && opts.showHeld) {
     for (const h of held) {
@@ -361,7 +383,7 @@ function shelfLines(s, w, p, opts = {}) {
     if (untitled) out.push(p.dim(`${untitled} held back to one line`));
   }
   out.push("");
-  out.push(...hang("", "lit: handed to your AI · number: served in 30 days", w, p.dim));
+  if (!pub) out.push(...hang("", "lit: handed to your AI · number: served in 30 days", w, p.dim));
   return out;
 }
 
@@ -371,7 +393,7 @@ function shelfLines(s, w, p, opts = {}) {
  */
 function frame(state, cols, rows, mode, hue, opts = {}) {
   const p = paint(mode, hue);
-  const L = layoutFor(cols);
+  const L = state.pick == null ? { mode: "inline" } : layoutFor(cols);
   const groups = groupRepeats(state.serves || []);
   // The shelf follows the picked turn, else the latest turn a person or their AI actually sent.
   // The public terminal's private turns have nothing to shelve, so the shelf skips them too.
@@ -385,14 +407,14 @@ function frame(state, cols, rows, mode, hue, opts = {}) {
   const gap = cols - vlen(headL) - vlen(headR);
   const header = gap >= 1 ? headL + " ".repeat(gap) + headR : fit(headL, cols);
   // Read-only: no keys to offer, and it says it runs behind.
-  const keys = opts.readOnly ? (cols >= 60 ? "read-only · about 10 minutes behind" : "read-only") : cols >= 100 ? "a  agent   ↑↓  scroll   [ ]  turn   h  held   end  follow   q  quit" : cols >= 50 ? "a · ↑↓ · [ ] · h · q quit" : "q quit";
+  const keys = opts.readOnly ? (cols >= 60 ? "read-only · about 10 minutes behind" : "read-only") : cols >= 100 ? "a  agent   ↑↓  scroll   [ ]  details   h  held   end  follow   q  quit" : cols >= 50 ? "a · ↑↓ · [ ] · h · q quit" : "q quit";
   // The ┬ sits over the │: a body row is " " + stream (streamW) + " " + "│", so the divider is column streamW + 2.
   const ruleTop = L.mode === "split" ? p.rule("─".repeat(L.streamW + 2) + "┬" + "─".repeat(cols - L.streamW - 3)) : p.rule("─".repeat(cols));
 
   const sw = L.mode === "split" ? L.streamW : cols - 1;
   let stream = [];
   groups.forEach((g, i) => {
-    stream = stream.concat(turnLines(g, sw, p, { inlineShelf: L.mode === "inline", picked: i === pickI && state.pick != null }));
+    stream = stream.concat(turnLines(g, sw, p, { inlineShelf: L.mode === "inline", picked: i === pickI && state.pick != null, viewer: opts.viewer || (opts.readOnly ? "public" : "owner") }));
   });
   if (!groups.length) stream = state.status === "live" ? hang("", EMPTY_TEXT, sw, p.dim) : [p.dim("Connecting to Unl…")];
   // The starter's one quiet offer: this folder is a project Unl is not wired into yet.
@@ -409,7 +431,7 @@ function frame(state, cols, rows, mode, hue, opts = {}) {
 
   const out = [fit(header, cols), fit(ruleTop, cols)];
   if (L.mode === "split") {
-    const shelf = shelfLines(current, L.shelfW, p, { showHeld: !!state.showHeld });
+    const shelf = shelfLines(current, L.shelfW, p, { showHeld: !!state.showHeld, viewer: opts.viewer || (opts.readOnly ? "public" : "owner") });
     for (let r = 0; r < bodyH; r++) out.push(fit(` ${fit(view[r], L.streamW)} ${p.rule("│")} ${fit(shelf[r] ?? "", L.shelfW)}`, cols));
   } else {
     for (let r = 0; r < bodyH; r++) out.push(fit(view[r], cols));
@@ -454,12 +476,15 @@ async function runTui({ api, key, agent: agentIn = "", tip = "", self = "unl", f
     else if (k === "\x1b[5~") state.scroll += Math.max(1, (out.rows || 30) - 4);
     else if (k === "\x1b[6~") state.scroll = Math.max(0, state.scroll - Math.max(1, (out.rows || 30) - 4));
     else if (k === "\x1b[F" || k === "\x1b[4~" || k === "G") { state.scroll = 0; state.pick = null; }
-    else if (k === "h") state.showHeld = !state.showHeld;
+    else if (k === "h") {
+      if (state.pick == null) state.pick = Math.max(0, groupRepeats(state.serves).length - 1);
+      state.showHeld = !state.showHeld;
+    }
     else if (k === "[" || k === "]") {
       const n = groupRepeats(state.serves).length;
-      const cur = state.pick == null ? n - 1 : state.pick;
-      state.pick = Math.max(0, Math.min(n - 1, cur + (k === "[" ? -1 : 1)));
-      if (state.pick === n - 1 && k === "]") state.pick = null;
+      if (state.pick == null) state.pick = Math.max(0, n - 1);
+      else if (state.pick === n - 1 && k === "]") state.pick = null;
+      else state.pick = Math.max(0, Math.min(n - 1, state.pick + (k === "[" ? -1 : 1)));
     } else if (k === "a") {
       const names = ["", ...state.receivers.map((r) => r.who).filter(Boolean)];
       state.agent = names[(names.indexOf(state.agent) + 1) % names.length] || "";
