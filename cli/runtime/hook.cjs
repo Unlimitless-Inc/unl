@@ -16,6 +16,8 @@
  *   node hook.cjs cursor-start Cursor sessionStart — once per session, the wake as
  *                              additional_context (Cursor delivers context at session start, not
  *                              per turn; nothing here pretends otherwise).
+ *   node hook.cjs muse         Muse Code UserPromptSubmit, as the Unl plugin for Muse Code runs it (brief
+ *): the same serve, returned as Muse's JSON hook output.
  *
  * THE THREE STATES, kept apart on purpose: success is silent to the person; no key is
  * silent (not set up is not broken); a reach that FAILED is said, every turn, on the person's
@@ -127,11 +129,17 @@ function logFailure(line) {
   } catch {}
 }
 
+// ONE DEADLINE FOR THE WHOLE CALL: the failure line promises TIMEOUT_MS, so a retry
+// spends only what is left of it, and a timeout is never retried. Retrying one doubled the wait, and the aborted
+// connect then held the process to Claude Code's 15s kill, which is dead air followed by silence.
 async function call(method, route, key, surface, body) {
   let last = null;
+  const deadline = Date.now() + TIMEOUT_MS;
   for (let attempt = 0; attempt < 2; attempt++) {
+    const left = deadline - Date.now();
+    if (left <= 0 || (last && last.name === "AbortError")) break;
     const ctl = new AbortController();
-    const t = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+    const t = setTimeout(() => ctl.abort(), left);
     try {
       const res = await fetch(`${BASE}${route}`, {
         method,
@@ -239,11 +247,13 @@ async function claudeCodeTurn(key) {
     touch(base + ".run");
     process.on("exit", () => touch(base + ".done"));
   }
-  const body = { query: prompt, channel: "hook", surface: "claude-code", hook_parts: 2 };
+  // Codex hands the same fields plus `turn_id`, which Claude Code's hook input does not carry.
+  const surface = typeof d.turn_id === "string" && d.turn_id.trim() ? "codex" : "claude-code";
+  const body = { query: prompt, channel: "hook", surface, hook_parts: 2 };
   if (typeof d.session_id === "string" && d.session_id.trim()) body.session = d.session_id.trim();
   if (process.env.UNL_VENTURE && process.env.UNL_VENTURE.trim()) body.venture = process.env.UNL_VENTURE.trim();
   else Object.assign(body, surfaceWorld(d.cwd));
-  const r = await call("POST", "/api/ask", key, "claude-code", body);
+  const r = await call("POST", "/api/ask", key, surface, body);
   if (r.status < 200 || r.status >= 300 || !r.text) {
     const line = failureLine(r, "the serve");
     logFailure(line);
@@ -258,6 +268,72 @@ async function claudeCodeTurn(key) {
   }
   const window = render(resp, base && fs.existsSync(base + ".listen") ? base + ".part2" : "");
   if (window) process.stdout.write(window + "\n");
+}
+
+/**
+ * MUSE CODE, as the Unl plugin runs it: `node hooks/hook.cjs muse`, on UserPromptSubmit.
+ * Read at source in Muse Code 1.4.3 on 6 Oct, by a probe plugin under a throwaway HOME:
+ *   - stdin carries hook_event_name, prompt, session_id, turn_id and cwd. It carries turn_id like Codex, so the
+ *     surface comes from the mode, never from the input's shape;
+ *   - the environment is cleared to an allowlist that keeps HOME and PATH, so the key is read from ~/.unl and
+ *     nothing here may depend on another shell variable;
+ *   - plain text on stdout is refused ("hook output must be a JSON object"); the window goes back as
+ *     hookSpecificOutput.additionalContext, which Muse places before the model as a developer context block.
+ *   - hook stdout is capped at 16,384 bytes, and a hook over it is killed and nothing is parsed (measured: the
+ *     first live serve here was over). So the serve asks for the split Claude Code's part 2 uses and sends only
+ *     part 1, which names every part-2 decision by its pointer, then trims whole lines to fit if it must.
+ * With no key, it says once per session how to sign in: the person installed the plugin to have Unl here, so
+ * silence would read as working.
+ */
+const MUSE_STDOUT_MAX = 16_384;
+function fitMuse(window) {
+  const wrap = (t) => JSON.stringify({ hookSpecificOutput: { hookEventName: "UserPromptSubmit", additionalContext: t } });
+  const budget = MUSE_STDOUT_MAX - 512;
+  if (Buffer.byteLength(wrap(window)) <= budget) return wrap(window);
+  const lines = window.split("\n");
+  const note = "[unl] …trimmed to fit Muse Code's hook limit. Call the unl tool ask_unl with this turn for the rest.";
+  while (lines.length > 1 && Buffer.byteLength(wrap([...lines, note].join("\n"))) > budget) lines.pop();
+  return wrap([...lines, note].join("\n"));
+}
+
+async function museTurn(key) {
+  let d;
+  try {
+    d = JSON.parse(await readStdin());
+  } catch {
+    return;
+  }
+  const prompt = typeof d.prompt === "string" ? d.prompt : "";
+  if (!prompt.trim()) return;
+  const out = (o) => process.stdout.write(JSON.stringify(o) + "\n");
+  if (!key) {
+    const sid = typeof d.session_id === "string" ? d.session_id.trim() : "";
+    const seen = sid ? path.join(os.tmpdir(), `unl-muse-signin-${crypto.createHash("sha256").update(sid).digest("hex").slice(0, 16)}`) : "";
+    if (seen && fs.existsSync(seen)) return;
+    if (seen) touch(seen);
+    return out({ systemMessage: "unl: not signed in on this machine yet. Run `npx unlimitless login` once, then your decisions come with every turn." });
+  }
+  const body = { query: prompt, channel: "hook", surface: "muse-code", hook_parts: 2 };
+  if (typeof d.session_id === "string" && d.session_id.trim()) body.session = d.session_id.trim();
+  Object.assign(body, surfaceWorld(d.cwd));
+  const r = await call("POST", "/api/ask", key, "muse-code", body);
+  if (r.status < 200 || r.status >= 300 || !r.text) {
+    // Muse clears the environment, so "set UNL_ASK_TIMEOUT" would be advice that cannot work here.
+    const line = failureLine(r, "the serve").replace(/ Set UNL_ASK_TIMEOUT to wait longer\.$/, "");
+    logFailure(line);
+    return out({ systemMessage: line });
+  }
+  let resp;
+  try {
+    resp = JSON.parse(r.text);
+  } catch {
+    return;
+  }
+  // render() takes part 1 only when it has somewhere to put part 2; nothing reads it here, so it is removed.
+  const spill = path.join(os.tmpdir(), `unl-muse-part2-${process.pid}`);
+  const window = render(resp, spill);
+  try { fs.unlinkSync(spill); } catch {}
+  if (window) process.stdout.write(fitMuse(window) + "\n");
 }
 
 async function cursorSessionStart(key) {
@@ -282,11 +358,16 @@ async function cursorSessionStart(key) {
 if (require.main === module) {
   (async () => {
     const key = readKey();
+    if (process.argv[2] === "muse") return museTurn(key);
     if (!key) return; // not set up on this machine: silent, never broken
     if (process.argv[2] === "cursor-start") return cursorSessionStart(key);
     if (process.argv[2] === "more") return partTwo();
     return claudeCodeTurn(key);
-  })().catch(() => {});
+  })()
+    .catch(() => {})
+    // The answer is written, so leave: an aborted connect to an address that never answers keeps Node alive until
+    // the OS gives up on it, and the agent waits on the hook all that time.
+    .finally(() => process.stdout.write("", () => process.exit(0)));
 }
 
-module.exports = { render, partsBase, partTwo };
+module.exports = { render, partsBase, partTwo, museTurn, fitMuse, MUSE_STDOUT_MAX };

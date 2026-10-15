@@ -1,8 +1,13 @@
 {
   "name": "unlimitless",
-  "version": "0.3.3",
+  "version": "0.3.6",
   "description": "Install Unl in your coding agent: one command, one sign-in, and your decisions reach your agent with their reasons.",
   "homepage": "https://unlimitless.ai/developers",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Unlimitless-Inc/unl.git",
+    "directory": "cli"
+  },
   "license": "MIT",
   "bin": {
     "unlimitless": "bin/unl.js",
@@ -16,10 +21,5 @@
   ],
   "engines": {
     "node": ">=18"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Unlimitless-Inc/unl.git",
-    "directory": "cli"
   }
 }

@@ -42,7 +42,7 @@ function helpText(self = "unl") {
     `Usage: ${self} [command]`,
     "",
     `  ${pad(self)}Open the Unl terminal. The first time, it signs you in.`,
-    `  ${pad(`${self} init`)}Add Unl to Claude Code in this project (--cursor for Cursor).`,
+    `  ${pad(`${self} init`)}Add Unl to Claude Code in this project (--cursor for Cursor, --codex for Codex).`,
     `  ${pad(`${self} login`)}Sign in on this machine.`,
     `  ${pad(`${self} logout`)}Remove this machine's key.`,
     `  ${pad(`${self} status`)}What is installed here.`,

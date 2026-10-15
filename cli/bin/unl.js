@@ -14,6 +14,7 @@
  *
  *   init            Claude Code (default): sign-in, MCP server, the enforcing hook, unl.md, import
  *   init --cursor   Cursor: the same, wired through Cursor's MCP config and session-start hook
+ *   init --codex    Codex: the server (read tools pre-approved, OAuth sign-in) and the per-turn hook, in ~/.codex/config.toml
  *   --dry-run       print what init would change, and change nothing (no sign-in either)
  *   --repair        update init's own entries in place (its local "unl" server); never adds a second
  *   (no command)    sign in if this machine has no key, then the Unl terminal
@@ -32,7 +33,7 @@ const readline = require("readline");
 
 const { signIn, mintKey } = require("../lib/oauth");
 const { discoverFiles, importFiles } = require("../lib/firstHour");
-const { wireClaudeHook, wireClaudeMcp, wireCursor, writeUnlMd, isUnlHook, commandPath, detectClaude, detectCursor, planWiring, describeFound } = require("../lib/wire");
+const { wireClaudeHook, wireClaudeMcp, wireCursor, wireCodex, detectCodex, writeUnlMd, isUnlHook, commandPath, detectClaude, detectCursor, planWiring, describeFound, notAProject, closingLine } = require("../lib/wire");
 const { surfaceTableText } = require("../lib/surfaces");
 const { runTerminal } = require("../lib/terminal");
 const { runTui, paint: tuiPaint, colorMode } = require("../lib/tui");
@@ -107,7 +108,7 @@ async function firstHour(repo, key, flags) {
   for (const f of files) say(`    ${f}`);
   let answer = flags.has("--yes") ? "yes" : await ask("  Should Unl read them and pull out the decisions for you to check? Nothing is kept until you confirm it with your agent. [Y/n] ");
   if (!process.stdin.isTTY && !flags.has("--yes")) {
-    say("  Skipped: this is not an interactive terminal. Run `${SELF} init --yes` to read them.");
+    say(`  Skipped: this is not an interactive terminal. Run \`${SELF} init --yes\` to read them.`);
     return;
   }
   if (/^n/i.test(answer)) {
@@ -143,14 +144,26 @@ function claudeListText() {
 async function init(flags) {
   const repo = process.cwd();
   const cursor = flags.has("--cursor");
-  const surface = cursor ? "cursor" : "claude-code";
+  const codex = !cursor && flags.has("--codex");
+  const surface = cursor ? "cursor" : codex ? "codex" : "claude-code";
+  const agentName = cursor ? "Cursor" : codex ? "Codex" : "Claude Code";
   const dry = flags.has("--dry-run");
   const repair = flags.has("--repair");
 
+  // NOT IN A PROJECT: run from the home folder there is nothing to read and unl.md would land in
+  // it. Claude Code and Cursor wire per folder, so init stops and says where to run it. Codex wires the user
+  // config, so that still happens; only unl.md and the read step, which belong to a project, are skipped.
+  const homeRun = notAProject(repo, os.homedir());
+  if (homeRun && !codex) {
+    say(`This is your home folder, not a project. Run \`${SELF} init${cursor ? " --cursor" : ""}\` inside the project you want ${agentName} to reach Unl from.`);
+    return;
+  }
+
   // NEVER DOUBLE-WIRE: look before writing. What is already here is said plainly and
   // left alone; only what is missing is added. A folder already fully wired stops here, before sign-in.
-  const found = cursor ? detectCursor(repo, { home: os.homedir() }) : detectClaude(repo, { home: os.homedir(), listText: claudeListText() });
+  const found = cursor ? detectCursor(repo, { home: os.homedir() }) : codex ? detectCodex(repo, { home: os.homedir() }) : detectClaude(repo, { home: os.homedir(), listText: claudeListText() });
   const plan = planWiring(found, { repair });
+  if (homeRun) plan.writeUnlMd = false;
   const lines = describeFound(found, repo);
   if (lines.length) {
     say(`Unl is already wired here:`);
@@ -170,18 +183,32 @@ async function init(flags) {
     return;
   }
 
-  say(`Installing Unl for ${cursor ? "Cursor" : "Claude Code"} in ${repo}`);
+  say(`Installing Unl for ${agentName} in ${repo}`);
 
   step("Sign in");
   const key = await ensureKey(surface, fromOf(process.argv));
 
   step("Wire your agent");
   const { hookPath, headersPath } = installRuntime();
+  let hookAdded = false;
   if (cursor) {
     const c = wireCursor(repo, { url: MCP_URL, hookPath, skipMcp: !plan.addServer, skipHook: !plan.addHook });
     say(`  .cursor/mcp.json: ${c.mcpAdded ? "added the unl server" : "unl server already there"}`);
+    hookAdded = !!c.hookAdded;
     say(`  .cursor/hooks.json: ${c.hookAdded ? "added the session-start hook" : "session-start hook already there"}`);
     say("  The first time Cursor uses the unl server it asks you to sign in once. That is Cursor's own sign-in.");
+  } else if (codex) {
+    const c = wireCodex(os.homedir(), { url: MCP_URL, hookPath, skipMcp: !plan.addServer, skipHook: !plan.addHook });
+    hookAdded = !!c.hookAdded;
+    const where = (f) => f.replace(os.homedir(), "~");
+    say(`  ${where(c.file)}: ${c.mcpAdded ? "added the unl server (its read tools run without asking; anything else asks first)" : "Unl's server already there"}`);
+    say(`  ${c.hookFile ? where(c.hookFile) : "Hook"}: ${c.hookAdded ? "added the hook that serves your decisions on every turn" : "a hook already serves Unl, so none was added"}`);
+    if (c.mcpAdded) {
+      const login = require("child_process").spawnSync("codex", ["mcp", "login", "unl"], { stdio: "inherit", timeout: 300000 });
+      if (login.error) say(`  Codex's \`codex\` command is not on your PATH. Install Codex, then run \`codex mcp login unl\` once.`);
+      else if (login.status !== 0) say("  Sign-in to the unl server did not finish. Run `codex mcp login unl` to finish it.");
+      else say("  Signed the unl server in with Codex's own sign-in. No key was written into a file.");
+    }
   } else {
     if (serverAct) {
       const m = wireClaudeMcp(repo, { url: MCP_URL, headersPath, replace: serverAct === "replace" });
@@ -190,17 +217,22 @@ async function init(flags) {
     } else say("  MCP server: Unl's server is already reachable here, so none was added.");
     if (plan.addHook) {
       const h = wireClaudeHook(repo, hookPath);
+      hookAdded = !!h.added;
       say(`  ${h.file}: ${h.added ? "added the hook that serves your decisions on every turn" : "hook already there"}`);
     } else say("  Hook: a hook already serves Unl here, so none was added.");
   }
-  say(`  unl.md: ${plan.writeUnlMd && writeUnlMd(repo, path.join(PKG, "templates", "unl.md")) ? "written (how any agent reaches Unl; your decisions stay in Unl)" : "already there, left as is"}`);
-
-  step("Read what you already decided");
-  await firstHour(repo, key, flags);
+  if (homeRun) {
+    say("  unl.md: not written, because this is your home folder. Run init again inside a project to add it there.");
+  } else {
+    say(`  unl.md: ${plan.writeUnlMd && writeUnlMd(repo, path.join(PKG, "templates", "unl.md")) ? "written (how any agent reaches Unl; your decisions stay in Unl)" : "already there, left as is"}`);
+    step("Read what you already decided");
+    await firstHour(repo, key, flags);
+  }
 
   say("\n" + surfaceTableText());
-  say(`\nDone. Open ${cursor ? "Cursor" : "Claude Code"} here and work as normal. Unl stays in the background.`);
-  if (!cursor) say("The first time, Claude Code asks whether you trust this folder. Say yes: the hook and the unl server only run in folders you trust.");
+  say(`\nDone. Open ${agentName} here and work as normal. Unl stays in the background.`);
+  const last = closingLine(surface, { hookAdded });
+  if (last) say(last);
 }
 
 async function status() {
